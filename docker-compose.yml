@@ -1,0 +1,86 @@
+version: '3.9'
+
+services:
+  db:
+    image: mariadb:10.11
+    container_name: nextcloud-db
+    restart: unless-stopped
+    volumes:
+      - ./db:/var/lib/mysql
+      - ./initdb:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    networks:
+      - internal
+
+  app:
+    image: nextcloud
+    container_name: nextcloud-app
+    restart: unless-stopped
+    ports:
+      - 8080:80
+    depends_on:
+      - db
+    volumes:
+      - ./www:/var/www/html
+    environment:
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_HOST: db
+    networks:
+      - internal
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: nextcloud-phpmyadmin
+    restart: unless-stopped
+    ports:
+      - 8081:80
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      #PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    depends_on:
+      - db
+    networks:
+      - internal
+
+  hbserver:
+    image: ts01soonr/hbs
+    container_name: hearbeat-server
+    restart: unless-stopped
+    ports:
+      - 8082:80
+    environment:
+      HB_USER: ${HB_USER}
+      HB_PWD: ${HB_PWD}
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${HB_DATABASE}
+      MYSQL_USER: root
+      MYSQL_HOST: db
+    depends_on:
+      - db
+    networks:
+      - internal
+
+  hbagent:
+    image: ts01soonr/hbc
+    container_name: hearbeat-client
+    restart: unless-stopped
+    ports:
+      - 8088:8888
+    environment:
+      HBAPI: http://hbserver/
+      HBKEY: MyFirstAce
+    depends_on:
+      - hbserver
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
