@@ -69,6 +69,8 @@ HB_DATABASE=your_hb_db
 - Image: `phpmyadmin/phpmyadmin`
 - Accessible at **http://localhost:8081**
 - For managing the MariaDB database
+- Note: Enable PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD} in [ docker-compose.yml ](docker-compose.yml#L46) 
+
 
 ### 4. Heartbeat Server (`hbserver`)
 - Image: `ts01soonr/hbs`
@@ -78,7 +80,7 @@ HB_DATABASE=your_hb_db
 
 ### 5. Heartbeat Client (`hbagent`)
 - Image: `ts01soonr/hbc`
-- Accessible at **http://localhost:8088**
+- Accessible at **tcp://localhost:8088**
 - Polls the Heartbeat Server for tasks
 
 ## ▶️ How to Run
@@ -103,7 +105,7 @@ docker compose logs -f
 | Nextcloud          | http://localhost:8080       |
 | phpMyAdmin         | http://localhost:8081       |
 | Heartbeat Server   | http://localhost:8082       |
-| Heartbeat Client   | http://localhost:8088       |
+| Heartbeat Client   | tcp://localhost:8088       |
 
 ## 🧹 Clean Up
 
@@ -120,4 +122,6 @@ docker compose down -v
 
 - All services run on an isolated internal Docker network.
 - Modify ports in `docker-compose.yml` if needed.
-- Ensure your `.env` file exists before launching the stack.
+- Ensure your `.env` file exists before launching the stack. 
+
+ **Warning:** Running services locally or under a private network. Do not recommended for public access. Ensure that appropriate security measures are in place if exposing services to the internet. Using Traefik reverse proxies can be good choice to HTTPS services
